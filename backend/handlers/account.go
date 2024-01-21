@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
+
+	// "github.com/golang-jwt/jwt/"
 	"github.com/saharat-vithchataya/noname/services"
 )
 
@@ -27,12 +30,14 @@ func (h accountHandler) OpenNewAccount(c *fiber.Ctx) error {
 }
 
 func (h accountHandler) GetAccount(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("account_id")
-	if err != nil {
-		return err
-	}
+	// user := c.Locals("user").(*jwtt.Token)
+	// claims := user.Claims.(jwtt.MapClaims)
+	// accountID := int(claims["account_id"].(float64))
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	accountID := claims["account_id"].(float64)
 
-	response, err := h.accountService.GetAccount(id)
+	response, err := h.accountService.GetAccount(int(accountID))
 	if err != nil {
 		return err
 	}

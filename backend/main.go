@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/saharat-vithchataya/noname/handlers"
@@ -24,7 +25,14 @@ func main() {
 	authHandler := handlers.NewAuthenticationHandler(authService)
 
 	app := fiber.New()
-	app.Get("/:account_id", accountHandler.GetAccount)
+	app.Use("/me", jwtware.New(jwtware.Config{
+		SigningMethod: "HS256",
+		SigningKey:    services.JwtSecret,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
+		},
+	}))
+	app.Get("/me", accountHandler.GetAccount)
 	app.Post("/", accountHandler.OpenNewAccount)
 	app.Post("/login", authHandler.Login)
 	app.Listen(":8000")
